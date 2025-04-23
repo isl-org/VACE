@@ -8,18 +8,18 @@
     ```
     <!-- pip install -r requirements/annotator.txt -->
     ```
-    I have cloned dependencies as, you can try `pip install -e .` if `pip install git+https` fails:
     ```
-    https://github.com/isl-org/GroundingDINO
-    https://github.com/isl-org/RAFT
+    pip install groundingdino@git+https://github.com/IDEA-Research/GroundingDINO
+    pip install wan@git+https://github.com/Wan-Video/Wan2.1
+    pip install raft@git+https://github.com/isl-org/RAFT
     ```
-    If sam2, segment-anything, recognize-anything are also needed, feel free to fork them to isl-org as well before adding them as submodules.
+    If sam2, segment-anything, recognize-anything are also needed, feel free to use the submodule cloned from this fork `git@github.com:isl-org/sam2.git` from video gen distillation github repo.
 - Preprocess video.
     ```
     # process video depth
     python vace/vace_preproccess.py --task depth --video assets/videos/test.mp4
     # or
-    python vace/gradios/vace_preprocess_demo.py
+    python vace/gradios/vace_preproccess_demo.py
     ```
 - Test Inference:
     ```
@@ -30,5 +30,4 @@
 - ```
   UnboundLocalError: local variable 'Model' referenced before assignment.
   ```
-  Missing groundingdino library.
-  
+  Missing groundingdino library. This can be fixed by installing GroundingDINO first.
