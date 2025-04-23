@@ -1,4 +1,6 @@
 # Project specific
+configs/
+results/
 models/
 processed/
 outputs/
