@@ -22,8 +22,13 @@
     python vace/gradios/vace_preproccess_demo.py
     ```
 - Test Inference:
+    - Inference with bbox.
     ```
-    python vace/vace_wan_inference.py --ckpt_dir /export/share/projects/videogen/vace/VACE-Wan2.1-1.3B-Preview --src_video assets/videos/test.mp4 --src_mask <path-to-src-mask> --src_ref_images <paths-to-src-ref-images> --prompt "xxx"
+    python vace/vace_pipeline.py --base wan --task inpainting --mode bbox --bbox 50,50,550,700 --video assets/videos/test.mp4 --prompt 'two cats are boxing on stage.'
+    ```
+    - Inference with videos of images and masks.
+    ```
+    python vace/vace_wan_inference.py --ckpt_dir /export/share/projects/videogen/checkpoints/vace/VACE-Wan2.1-1.3B-Preview --src_video /export/share/projects/videogen/data/davis/train/bear/rgb_right_0.05.mp4 --src_mask /export/share/projects/videogen/data/davis/train/bear/mask_0.05.mp4 --prompt "a brown bear is walking in a rocky area."
     ```
 
 # Q&A
