@@ -13,6 +13,10 @@ from typing import Callable, Dict, List, Optional, Tuple, Union
 
 
 import torch
+if torch.cuda.is_available():
+    from torch.cuda import empty_cache
+else:
+    from torch.xpu import empty_cache
 from torch import Tensor
 import torch.nn.functional as F
 from contextlib import nullcontext
@@ -533,8 +537,7 @@ class VaceLTXVideoPipeline(LTXVideoPipeline):
 
         if offload_to_cpu:
             self.transformer = self.transformer.cpu()
-            if self._execution_device == "cuda":
-                torch.cuda.empty_cache()
+            empty_cache()
 
         latents = self.patchifier.unpatchify(
             latents=latents,

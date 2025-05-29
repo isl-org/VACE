@@ -197,9 +197,18 @@ def main(args):
         logging.info(
             f"offload_model is not specified, set to {args.offload_model}.")
     if world_size > 1:
-        torch.cuda.set_device(local_rank)
+        if torch.cuda.is_available():
+            torch.cuda.set_device(local_rank)
+            backend = "nccl"
+        elif torch.xpu.is_available():
+            import oneccl_bindings_for_pytorch
+            torch.xpu.set_device(local_rank)
+            backend = "ccl"
+        else:
+            raise RuntimeError(
+                "No available backend found. Please ensure you have a compatible GPU.")
         dist.init_process_group(
-            backend="nccl",
+            backend=backend,
             init_method="env://",
             rank=rank,
             world_size=world_size)

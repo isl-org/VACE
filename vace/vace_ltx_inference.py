@@ -6,6 +6,13 @@ import random
 import time
 
 import torch
+if torch.cuda.is_available():
+    from torch.cuda import get_device_properties, manual_seed as gpu_manual_seed
+elif torch.xpu.is_available():
+    from torch.xpu import get_device_properties, manual_seed as gpu_manual_seed
+else:
+    get_device_properties = None
+    from torch import manual_seed
 import numpy as np
 
 from models.ltx.ltx_vace import LTXVace
@@ -16,18 +23,17 @@ MAX_WIDTH = 1280
 MAX_NUM_FRAMES = 257
 
 def get_total_gpu_memory():
-    if torch.cuda.is_available():
-        total_memory = torch.cuda.get_device_properties(0).total_memory / (1024**3)
-        return total_memory
-    return None
+    if get_device_properties is None:
+        return None
+    total_memory = get_device_properties(0).total_memory / (1024**3)
+    return total_memory
 
 
 def seed_everething(seed: int):
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
-    if torch.cuda.is_available():
-        torch.cuda.manual_seed(seed)
+    gpu_manual_seed(seed)
 
 def get_parser():
     parser = argparse.ArgumentParser(

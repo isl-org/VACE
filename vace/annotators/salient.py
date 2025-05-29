@@ -7,6 +7,11 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torchvision import transforms
+device_type = "cpu"
+if torch.cuda.is_available():
+    device_type = "cuda"
+elif torch.xpu.is_available():
+    device_type = "xpu"
 
 from .utils import convert_to_pil
 
@@ -313,7 +318,7 @@ class SalientAnnotator:
         self.return_image = cfg.get('RETURN_IMAGE', False)
         self.use_crop = cfg.get('USE_CROP', False)
         pretrained_model = cfg['PRETRAINED_MODEL']
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu") if device is None else device
+        self.device = torch.device(device_type) if device is None else device
         self.norm_mean = [0.485, 0.456, 0.406]
         self.norm_std = [0.229, 0.224, 0.225]
         self.norm_size = cfg.get('NORM_SIZE', [320, 320])

@@ -259,7 +259,7 @@ class VaceWanModel(WanModel):
         )
 
         # time embeddings
-        with amp.autocast("cuda", dtype=torch.float32):
+        with amp.autocast(device.type, dtype=torch.float32):
             e = self.time_embedding(sinusoidal_embedding_1d(self.freq_dim, t).float())
             e0 = self.time_projection(e).unflatten(1, (6, self.dim))
             assert e.dtype == torch.float32 and e0.dtype == torch.float32

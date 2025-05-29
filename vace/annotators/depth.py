@@ -7,19 +7,25 @@ from einops import rearrange
 
 from .utils import convert_to_numpy, resize_image, resize_image_ori
 
+if torch.cuda.is_available():
+    device_type = "cuda"
+elif torch.xpu.is_available():
+    device_type = "xpu"
+else:
+    device_type = "cpu"
 
 class DepthAnnotator:
     def __init__(self, cfg, device=None):
         from .midas.api import MiDaSInference
         pretrained_model = cfg['PRETRAINED_MODEL']
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu") if device is None else device
+        self.device = torch.device(device_type) if device is None else device
         self.model = MiDaSInference(model_type='dpt_hybrid', model_path=pretrained_model).to(self.device)
         self.a = cfg.get('A', np.pi * 2.0)
         self.bg_th = cfg.get('BG_TH', 0.1)
 
     @torch.no_grad()
     @torch.inference_mode()
-    @torch.autocast('cuda', enabled=False)
+    @torch.autocast(device_type, enabled=False)
     def forward(self, image):
         image = convert_to_numpy(image)
         image_depth = image

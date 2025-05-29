@@ -2,6 +2,11 @@
 # Copyright (c) Alibaba, Inc. and its affiliates.
 import numpy as np
 import torch
+device_type = "cpu"
+if torch.cuda.is_available():
+    device_type = "cuda"
+elif torch.xpu.is_available():
+    device_type = "xpu"
 from scipy import ndimage
 
 from .utils import convert_to_numpy
@@ -18,7 +23,7 @@ class SAMImageAnnotator:
         self.task_type = cfg.get('TASK_TYPE', 'input_box')
         self.return_mask = cfg.get('RETURN_MASK', False)
         self.transform = ResizeLongestSide(1024)
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu") if device is None else device
+        self.device = torch.device(device_type) if device is None else device
         seg_model = sam_model_registry[cfg.get('MODEL_NAME', 'vit_b')](checkpoint=cfg['PRETRAINED_MODEL']).eval().to(self.device)
         self.predictor = SamPredictor(seg_model)
 

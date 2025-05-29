@@ -3,6 +3,11 @@
 import numpy as np
 import torch
 import torch.nn as nn
+device_type = "cpu"
+if torch.cuda.is_available():
+    device_type = "cuda"
+elif torch.xpu.is_available():
+    device_type = "xpu"
 from einops import rearrange
 
 from .utils import convert_to_torch
@@ -105,7 +110,7 @@ class ScribbleAnnotator:
         n_residual_blocks = cfg.get('N_RESIDUAL_BLOCKS', 3)
         sigmoid = cfg.get('SIGMOID', True)
         pretrained_model = cfg['PRETRAINED_MODEL']
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu") if device is None else device
+        self.device = torch.device(device_type) if device is None else device
         self.model = ContourInference(input_nc, output_nc, n_residual_blocks,
                                       sigmoid)
         self.model.load_state_dict(torch.load(pretrained_model, weights_only=True))
@@ -113,7 +118,7 @@ class ScribbleAnnotator:
 
     @torch.no_grad()
     @torch.inference_mode()
-    @torch.autocast('cuda', enabled=False)
+    @torch.autocast(device_type, enabled=False)
     def forward(self, image):
         is_batch = False if len(image.shape) == 3 else True
         image = convert_to_torch(image)

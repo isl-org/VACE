@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) Alibaba, Inc. and its affiliates.
 import torch
-import torch.cuda.amp as amp
+if torch.cuda.is_available():
+    from torch.cuda import amp
+else:
+    import intel_extension_for_pytorch as ipex   # noqa: needed for amp in PyTorch 2.7
+    from torch.xpu import amp
 from xfuser.core.distributed import (get_sequence_parallel_rank,
                                      get_sequence_parallel_world_size,
                                      get_sp_group)

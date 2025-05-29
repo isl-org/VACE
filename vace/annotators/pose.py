@@ -5,6 +5,11 @@ import os
 
 import cv2
 import torch
+device_type = "cpu"
+if torch.cuda.is_available():
+    device_type = "cuda"
+elif torch.xpu.is_available():
+    device_type = "xpu"
 import numpy as np
 from .dwpose import util
 from .dwpose.wholebody import Wholebody, HWC3, resize_image
@@ -36,7 +41,7 @@ class PoseAnnotator:
     def __init__(self, cfg, device=None):
         onnx_det = cfg['DETECTION_MODEL']
         onnx_pose = cfg['POSE_MODEL']
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu") if device is None else device
+        self.device = torch.device(device_type) if device is None else device
         self.pose_estimation = Wholebody(onnx_det, onnx_pose, device=self.device)
         self.resize_size = cfg.get("RESIZE_SIZE", 1024)
         self.use_body = cfg.get('USE_BODY', True)

@@ -3,6 +3,11 @@
 import torch
 import numpy as np
 import argparse
+device_type = "cpu"
+if torch.cuda.is_available():
+    device_type = "cuda"
+elif torch.xpu.is_available():
+    device_type = "xpu"
 
 from .utils import convert_to_numpy
 
@@ -24,7 +29,7 @@ class FlowAnnotator:
         }
         params = argparse.Namespace(**params)
         pretrained_model = cfg['PRETRAINED_MODEL']
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu") if device is None else device
+        self.device = torch.device(device_type) if device is None else device
         self.model = RAFT(params)
         self.model.load_state_dict({k.replace('module.', ''): v for k, v in torch.load(pretrained_model, map_location="cpu", weights_only=True).items()})
         self.model = self.model.to(self.device).eval()

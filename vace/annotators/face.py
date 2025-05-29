@@ -3,9 +3,13 @@
 
 import numpy as np
 import torch
-
+device_type = "cpu"
+if torch.cuda.is_available():
+    device_type = "cuda"
+elif torch.xpu.is_available():
+    device_type = "xpu"
 from .utils import convert_to_numpy
-
+import onnxruntime as ort
 
 class FaceAnnotator:
     def __init__(self, cfg, device=None):
@@ -15,10 +19,10 @@ class FaceAnnotator:
         self.return_dict = cfg.get('RETURN_DICT', False)
         self.multi_face = cfg.get('MULTI_FACE', True)
         pretrained_model = cfg['PRETRAINED_MODEL']
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu") if device is None else device
-        self.device_id = self.device.index if self.device.type == 'cuda' else None
+        self.device = torch.device(device_type) if device is None else device
+        self.device_id = self.device.index if self.device.type != 'cpu' else None
         ctx_id = self.device_id if self.device_id is not None else 0
-        self.model = FaceAnalysis(name=cfg.MODEL_NAME, root=pretrained_model, providers=['CUDAExecutionProvider', 'CPUExecutionProvider'])
+        self.model = FaceAnalysis(name=cfg.MODEL_NAME, root=pretrained_model, providers=ort.get_available_providers())
         self.model.prepare(ctx_id=ctx_id, det_size=(640, 640))
 
     def forward(self, image=None, return_mask=None, return_dict=None):

@@ -17,7 +17,11 @@ from .models.transformers.transformer3d import VaceTransformer3DModel
 from .pipelines.pipeline_ltx_video import VaceLTXVideoPipeline
 from ..utils.preprocessor import VaceImageProcessor, VaceVideoProcessor
 
-
+device_type = "cpu"
+if torch.cuda.is_available():
+    device_type = "cuda"
+elif torch.xpu.is_available():
+    device_type = "xpu"
 
 class LTXVace():
     def __init__(self, ckpt_path, text_encoder_path, precision='bfloat16', stg_skip_layers="19", stg_mode="stg_a", offload_to_cpu=False):
@@ -32,10 +36,9 @@ class LTXVace():
         patchifier = SymmetricPatchifier(patch_size=1)
         tokenizer = T5Tokenizer.from_pretrained(text_encoder_path, subfolder="tokenizer")
 
-        if torch.cuda.is_available():
-            transformer = transformer.cuda()
-            vae = vae.cuda()
-            text_encoder = text_encoder.cuda()
+        transformer = transformer.to(device_type)
+        vae = vae.to(device_type)
+        text_encoder = text_encoder.to(device_type)
 
         vae = vae.to(torch.bfloat16)
         if precision == "bfloat16" and transformer.dtype != torch.bfloat16:
@@ -61,8 +64,7 @@ class LTXVace():
         }
 
         self.pipeline = VaceLTXVideoPipeline(**submodel_dict)
-        if torch.cuda.is_available():
-            self.pipeline = self.pipeline.to("cuda")
+        self.pipeline = self.pipeline.to(device_type)
 
         self.img_proc = VaceImageProcessor(downsample=[8,32,32], seq_len=384)
 
@@ -123,9 +125,7 @@ class LTXVace():
             "negative_prompt_attention_mask": None,
         }
 
-        generator = torch.Generator(
-            device="cuda" if torch.cuda.is_available() else "cpu"
-        ).manual_seed(seed)
+        generator = torch.Generator(device=device_type).manual_seed(seed)
 
         output = self.pipeline(
             num_inference_steps=num_inference_steps,

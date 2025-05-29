@@ -14,7 +14,11 @@ from PIL import Image
 import torchvision.transforms.functional as TF
 import torch
 import torch.nn.functional as F
-import torch.cuda.amp as amp
+if torch.cuda.is_available():
+    from torch.cuda import amp, empty_cache, synchronize
+else:
+    import intel_extension_for_pytorch as ipex   # noqa: needed for amp in PyTorch 2.7
+    from torch.xpu import amp, empty_cache, synchronize
 import torch.distributed as dist
 from tqdm import tqdm
 
@@ -401,7 +405,7 @@ class WanVace(WanT2V):
             x0 = latents
             if offload_model:
                 self.model.cpu()
-                torch.cuda.empty_cache()
+                empty_cache()
             if self.rank == 0:
                 videos = self.decode_latent(x0, input_ref_images)
 
@@ -409,7 +413,7 @@ class WanVace(WanT2V):
         del sample_scheduler
         if offload_model:
             gc.collect()
-            torch.cuda.synchronize()
+            synchronize()
         if dist.is_initialized():
             dist.barrier()
 
